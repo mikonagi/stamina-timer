@@ -6,20 +6,29 @@
   <title>ソシャゲタイマー</title>
   <style>
     :root {
-      --primary: #2563eb;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-sub: #334155;
-      --border: #e2e8f0;
-      --bar-bg: #e2e8f0;
+      --primary: #3b82f6;
+      --bg: #0b1120;
+      --card-bg: #111827;
+      --text-main: #e5e7eb;
+      --text-sub: #94a3b8;
+      --border: #1f2937;
+      --bar-bg: #1f2937;
+      --input-bg: #0f172a;
+      --hover-bg: #172033;
       --color-green: #10b981;
       --color-yellow: #f59e0b;
       --color-red: #ef4444;
+      --shadow: rgba(0, 0, 0, 0.45);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--bg); color: var(--text-main); padding-bottom: 90px; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding-bottom: 90px;
+    }
 
     #loadingCover {
       position: fixed;
@@ -43,25 +52,49 @@
       padding: 16px;
       z-index: 999;
     }
+
     .lock-box {
-      background: #fff;
+      background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 24px;
       width: 100%;
       max-width: 360px;
       text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 12px var(--shadow);
     }
+
     .lock-box h2 { font-size: 1.2rem; margin-bottom: 8px; }
     .lock-box p { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 16px; }
-    .lock-box input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; margin-bottom: 12px; }
-    .lock-box button { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+    .lock-box input {
+      width: 100%;
+      padding: 10px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 1rem;
+      color: var(--text-main);
+      margin-bottom: 12px;
+    }
+
+    .lock-box input::placeholder { color: #64748b; }
+
+    .lock-box button {
+      width: 100%;
+      padding: 10px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
     #appContainer { display: none; }
 
     header {
-      background: var(--card-bg);
+      background: rgba(17, 24, 39, 0.95);
       border-bottom: 1px solid var(--border);
       padding: 10px 16px;
       display: flex;
@@ -70,11 +103,32 @@
       position: sticky;
       top: 0;
       z-index: 50;
+      backdrop-filter: blur(8px);
     }
+
     header h1 { font-size: 1.05rem; font-weight: 700; }
-    .header-actions { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
-    .sync-btn { background: none; border: 1px solid var(--border); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; color: var(--text-sub); }
-    .sync-btn:hover { background: #f1f5f9; color: var(--text-main); }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+    }
+
+    .sync-btn {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      color: var(--text-sub);
+    }
+
+    .sync-btn:hover {
+      background: var(--hover-bg);
+      color: var(--text-main);
+    }
 
     main { max-width: 600px; margin: 12px auto; padding: 0 10px; }
 
@@ -84,14 +138,16 @@
       border-radius: 10px;
       padding: 12px;
       margin-bottom: 10px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
     }
+
     .card-row-1 {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 6px;
     }
+
     .game-title-container {
       display: flex;
       align-items: center;
@@ -99,6 +155,7 @@
       flex: 1;
       min-width: 0;
     }
+
     .game-title {
       font-size: 1rem;
       font-weight: 700;
@@ -106,16 +163,18 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
     .stamina-text {
       font-size: 1rem;
       font-weight: 800;
-      color: var(--primary);
+      color: #60a5fa;
       white-space: nowrap;
       margin-left: auto;
       margin-right: 12px;
     }
+
     .edit-btn {
-      background: #f8fafc;
+      background: var(--input-bg);
       border: 1px solid var(--border);
       padding: 3px 8px;
       border-radius: 6px;
@@ -123,7 +182,11 @@
       cursor: pointer;
       color: var(--text-sub);
     }
-    .edit-btn:hover { background: #edf2f7; color: var(--text-main); }
+
+    .edit-btn:hover {
+      background: var(--hover-bg);
+      color: var(--text-main);
+    }
 
     .stamina-bar-container {
       width: 100%;
@@ -133,6 +196,7 @@
       overflow: hidden;
       margin-bottom: 8px;
     }
+
     .stamina-bar-fill {
       height: 100%;
       border-radius: 4px;
@@ -144,7 +208,8 @@
       line-height: 1.4;
       color: var(--text-sub);
     }
-    .time-target { color: #b45309; font-weight: 600; }
+
+    .time-target { color: #fbbf24; font-weight: 600; }
     .time-detail { font-size: 0.8rem; color: var(--text-sub); font-weight: bold; }
 
     .form-row { display: flex; gap: 8px; align-items: center; }
@@ -162,7 +227,7 @@
       color: #fff;
       font-size: 26px;
       border: none;
-      box-shadow: 0 4px 10px rgba(37,99,235,0.3);
+      box-shadow: 0 4px 10px rgba(59, 130, 246, 0.35);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -170,35 +235,92 @@
       z-index: 80;
       transition: transform 0.15s ease;
     }
+
     .fab:active { transform: scale(0.92); }
 
     .modal-overlay {
       display: none;
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.65);
       z-index: 100;
       justify-content: center;
       align-items: center;
       padding: 16px;
     }
+
     .modal-overlay.active { display: flex; }
+
     .modal-card {
-      background: #fff;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
       border-radius: 12px;
       width: 100%;
       max-width: 400px;
       padding: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      box-shadow: 0 10px 25px var(--shadow);
     }
+
     .modal-card h2 { font-size: 1.1rem; margin-bottom: 14px; }
+
     .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px; font-weight: 600; }
-    .form-group input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
-    .btn-save { background: var(--primary); color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    .btn-cancel { background: #f1f5f9; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-    .btn-delete { background: #fee2e2; color: #b91c1c; border: none; padding: 8px 12px; border-radius: 6px; margin-right: auto; cursor: pointer; font-weight: 600; }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 8px 10px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      color: var(--text-main);
+    }
+
+    .form-group input::placeholder { color: #64748b; }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .btn-save {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-cancel {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    .btn-delete {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-right: auto;
+      cursor: pointer;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -211,7 +333,7 @@
       <p>パスコードを入力してください</p>
       <input type="password" id="passInput" placeholder="パスコード" onkeydown="if(event.key==='Enter') verifyAndLogin()">
       <button onclick="verifyAndLogin()">ロック解除</button>
-      <div id="lockError" style="color: #ef4444; font-size: 0.8rem; margin-top: 8px; display: none;">パスコードが違います</div>
+      <div id="lockError" style="color: #f87171; font-size: 0.8rem; margin-top: 8px; display: none;">パスコードが違います</div>
     </div>
   </div>
 
@@ -235,19 +357,19 @@
 
         <div class="form-group">
           <label>ゲームタイトル</label>
-          <input type="text" id="inputName" placeholder="例: ブルーアーカイブ">
+          <input type="text" id="inputName">
         </div>
         <div class="form-group">
           <label>現在のスタミナ</label>
-          <input type="number" id="inputCurrent" placeholder="例: 21">
+          <input type="number" id="inputCurrent">
         </div>
         <div class="form-group">
           <label>最大スタミナ</label>
-          <input type="number" id="inputMax" placeholder="例: 240">
+          <input type="number" id="inputMax">
         </div>
         <div class="form-group">
           <label>目標スタミナ</label>
-          <input type="number" id="inputTarget" placeholder="例: 50" value="50">
+          <input type="number" id="inputTarget">
         </div>
         <div class="form-group">
           <label>回復ペース</label>
@@ -393,8 +515,7 @@
       }
 
       const maxVal = Number(t.max_stamina);
-      
-      // スプレッドシートから読み込んだ target_stamina を正確に数値化
+
       const targetVal = t.target_stamina !== undefined ? Number(t.target_stamina) : maxVal;
 
       let targetText = "";
@@ -431,19 +552,18 @@
   }
 
   function formatDuration(totalSec) {
-    if (totalSec <= 0) return "00:00:00";
+    if (totalSec <= 0) return "0:00:00";
     const h = Math.floor(totalSec / 3600);
-    const m = Math.floor((totalSec % 3600) / 60);
-    const s = totalSec % 60;
-    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+    const s = String(totalSec % 60).padStart(2, '0');
+    return `${h}:${m}:${s}`;
   }
 
   function formatClock(date) {
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
-    const timeStr = date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-    if (isToday) return timeStr;
-    return `${date.getMonth()+1}/${date.getDate()} ${timeStr}`;
+    const h = date.getHours();
+    const m = String(date.getMinutes()).padStart(2, '0');
+    const s = String(date.getSeconds()).padStart(2, '0');
+    return `${h}:${m}:${s}`;
   }
 
   function openAddModal() {
@@ -452,7 +572,7 @@
     document.getElementById("inputName").value = "";
     document.getElementById("inputCurrent").value = "";
     document.getElementById("inputMax").value = "";
-    document.getElementById("inputTarget").value = "50";
+    document.getElementById("inputTarget").value = "";
     
     document.getElementById("inputIntervalMin").value = "5";
     document.getElementById("inputIntervalSec").value = "0";
@@ -498,11 +618,9 @@
     const current = Number(document.getElementById("inputCurrent").value) || 0;
     const max = Number(document.getElementById("inputMax").value);
     
-    // 入力値を正しくパースして取得
     const targetInput = document.getElementById("inputTarget").value.trim();
     const targetVal = targetInput !== "" ? Number(targetInput) : max;
     
-    // 分と秒の入力値を取得（HTML要素が確実に存在するため、安全に実行可能）
     const minInput = Number(document.getElementById("inputIntervalMin").value) || 0;
     const secInput = Number(document.getElementById("inputIntervalSec").value) || 0;
     const totalSeconds = (minInput * 60) + secInput;
@@ -521,7 +639,7 @@
         max_stamina: max,
         target_stamina: targetVal,
         recover_minutes: intervalDecimal,
-        updated_at: new Date().toISOString()
+        updated_at: Date.now()
       });
     } else {
       timers[editIndex].name = name;
@@ -529,7 +647,7 @@
       timers[editIndex].max_stamina = max;
       timers[editIndex].target_stamina = targetVal;
       timers[editIndex].recover_minutes = intervalDecimal;
-      timers[editIndex].updated_at = new Date().toISOString();
+      timers[editIndex].updated_at = Date.now();
     }
 
     closeModal();

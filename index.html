@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ソシャゲタイマー</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-sub: #334155;
+      --border: #e2e8f0;
+      --bar-bg: #e2e8f0;
+      --color-green: #10b981;
+      --color-yellow: #f59e0b;
+      --color-red: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--bg); color: var(--text-main); padding-bottom: 90px; }
+
+    #loadingCover {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      font-size: 0.9rem;
+      color: var(--text-sub);
+    }
+
+    #lockScreen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      z-index: 999;
+    }
+    .lock-box {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .lock-box h2 { font-size: 1.2rem; margin-bottom: 8px; }
+    .lock-box p { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 16px; }
+    .lock-box input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; margin-bottom: 12px; }
+    .lock-box button { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+    #appContainer { display: none; }
+
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    header h1 { font-size: 1.05rem; font-weight: 700; }
+    .header-actions { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+    .sync-btn { background: none; border: 1px solid var(--border); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; color: var(--text-sub); }
+    .sync-btn:hover { background: #f1f5f9; color: var(--text-main); }
+
+    main { max-width: 600px; margin: 12px auto; padding: 0 10px; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .card-row-1 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .game-title-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+    .game-title {
+      font-size: 1rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stamina-text {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--primary);
+      white-space: nowrap;
+      margin-left: auto;
+      margin-right: 12px;
+    }
+    .edit-btn {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      color: var(--text-sub);
+    }
+    .edit-btn:hover { background: #edf2f7; color: var(--text-main); }
+
+    .stamina-bar-container {
+      width: 100%;
+      height: 8px;
+      background-color: var(--bar-bg);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .stamina-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .time-info-box {
+      font-size: 0.8rem;
+      line-height: 1.4;
+      color: var(--text-sub);
+    }
+    .time-target { color: #b45309; font-weight: 600; }
+    .time-detail { font-size: 0.8rem; color: var(--text-sub); font-weight: bold; }
+
+    .form-row { display: flex; gap: 8px; align-items: center; }
+    .form-row input { flex: 1; text-align: center; }
+    .form-row span { font-size: 0.85rem; color: var(--text-sub); font-weight: bold; }
+
+    .fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 26px;
+      border: none;
+      box-shadow: 0 4px 10px rgba(37,99,235,0.3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 80;
+      transition: transform 0.15s ease;
+    }
+    .fab:active { transform: scale(0.92); }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: #fff;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .modal-card h2 { font-size: 1.1rem; margin-bottom: 14px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px; font-weight: 600; }
+    .form-group input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    .btn-save { background: var(--primary); color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .btn-cancel { background: #f1f5f9; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+    .btn-delete { background: #fee2e2; color: #b91c1c; border: none; padding: 8px 12px; border-radius: 6px; margin-right: auto; cursor: pointer; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div id="loadingCover">ロード中...</div>
+
+  <div id="lockScreen">
+    <div class="lock-box">
+      <h2>🔒 認証が必要です</h2>
+      <p>パスコードを入力してください</p>
+      <input type="password" id="passInput" placeholder="パスコード" onkeydown="if(event.key==='Enter') verifyAndLogin()">
+      <button onclick="verifyAndLogin()">ロック解除</button>
+      <div id="lockError" style="color: #ef4444; font-size: 0.8rem; margin-top: 8px; display: none;">パスコードが違います</div>
+    </div>
+  </div>
+
+  <div id="appContainer">
+    <header>
+      <h1>📱 ソシャゲタイマー</h1>
+      <div class="header-actions">
+        <span id="syncStatus">読込待機中</span>
+        <button class="sync-btn" onclick="fetchTimers()">🔄 同期</button>
+      </div>
+    </header>
+
+    <main id="timerContainer"></main>
+
+    <button class="fab" onclick="openAddModal()" title="タイマーを追加">＋</button>
+
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-card">
+        <h2 id="modalTitle">タイマー追加</h2>
+        <input type="hidden" id="editIndex" value="-1">
+
+        <div class="form-group">
+          <label>ゲームタイトル</label>
+          <input type="text" id="inputName" placeholder="例: ブルーアーカイブ">
+        </div>
+        <div class="form-group">
+          <label>現在のスタミナ</label>
+          <input type="number" id="inputCurrent" placeholder="例: 21">
+        </div>
+        <div class="form-group">
+          <label>最大スタミナ</label>
+          <input type="number" id="inputMax" placeholder="例: 240">
+        </div>
+        <div class="form-group">
+          <label>目標スタミナ</label>
+          <input type="number" id="inputTarget" placeholder="例: 50" value="50">
+        </div>
+        <div class="form-group">
+          <label>回復ペース</label>
+          <div class="form-row">
+            <input type="number" id="inputIntervalMin" placeholder="分" value="5">
+            <span>分</span>
+            <input type="number" id="inputIntervalSec" placeholder="秒" value="0" min="0" max="59">
+            <span>秒 / 1回復</span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-delete" id="btnDelete" onclick="deleteCurrentTimer()" style="display:none;">削除</button>
+          <button type="button" class="btn-cancel" onclick="closeModal()">キャンセル</button>
+          <button type="button" class="btn-save" onclick="saveModalData()">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycby-L_nAEWa0OtSLRkhFPWM0OEKHEzXjjwqxu3hppIz_FBiYmeN5YSFqxSDOdK7eTJIx/exec";
+
+  let timers = [];
+  let userToken = "";
+
+  async function checkAuth() {
+    const savedToken = localStorage.getItem("sg_timer_token");
+    
+    const cachedData = localStorage.getItem("sg_timer_cached_data");
+    if (cachedData) {
+      try {
+        timers = JSON.parse(cachedData);
+        render();
+      } catch(e) {}
+    }
+
+    if (savedToken) {
+      userToken = savedToken;
+      const success = await fetchTimers(true);
+      if (success) {
+        document.getElementById("loadingCover").style.display = "none";
+        document.getElementById("appContainer").style.display = "block";
+        document.getElementById("lockScreen").style.display = "none";
+        document.getElementById("syncStatus").innerText = "同期完了";
+        return;
+      } else {
+        if (timers.length > 0) {
+          document.getElementById("loadingCover").style.display = "none";
+          document.getElementById("appContainer").style.display = "block";
+          document.getElementById("lockScreen").style.display = "none";
+          document.getElementById("syncStatus").innerText = "オフライン表示中";
+          return;
+        }
+      }
+    }
+    
+    document.getElementById("loadingCover").style.display = "none";
+    document.getElementById("lockScreen").style.display = "flex";
+    document.getElementById("appContainer").style.display = "none";
+  }
+
+  async function verifyAndLogin() {
+    const entered = document.getElementById("passInput").value.trim();
+    userToken = entered;
+    
+    document.getElementById("loadingCover").style.display = "flex";
+    document.getElementById("lockScreen").style.display = "none";
+    
+    const success = await fetchTimers(true);
+    document.getElementById("loadingCover").style.display = "none";
+    
+    if (success) {
+      localStorage.setItem("sg_timer_token", entered);
+      document.getElementById("lockError").style.display = "none";
+      checkAuth();
+    } else {
+      document.getElementById("lockScreen").style.display = "flex";
+      document.getElementById("lockError").style.display = "block";
+    }
+  }
+
+  async function fetchTimers(isTest = false) {
+    const statusEl = document.getElementById("syncStatus");
+    if (!isTest) statusEl.innerText = "同期中...";
+    try {
+      const res = await fetch(`${GAS_API_URL}?token=${encodeURIComponent(userToken)}`);
+      if (res.status === 401) return false;
+      
+      timers = await res.json();
+      
+      localStorage.setItem("sg_timer_cached_data", JSON.stringify(timers));
+
+      render();
+      if (!isTest) statusEl.innerText = "同期完了";
+      return true;
+    } catch (err) {
+      if (!isTest) statusEl.innerText = "同期失敗";
+      console.error(err);
+      return false;
+    }
+  }
+
+  async function saveTimersToGAS() {
+    const statusEl = document.getElementById("syncStatus");
+    statusEl.innerText = "保存中...";
+    try {
+      await fetch(GAS_API_URL, {
+        method: "POST",
+        body: JSON.stringify({ token: userToken, items: timers })
+      });
+      localStorage.setItem("sg_timer_cached_data", JSON.stringify(timers));
+      statusEl.innerText = "同期完了";
+    } catch (err) {
+      statusEl.innerText = "保存失敗";
+      console.error(err);
+    }
+  }
+
+  function render() {
+    const container = document.getElementById("timerContainer");
+    const nowMs = Date.now();
+    container.innerHTML = "";
+
+    timers.forEach((t, index) => {
+      const lastUpdatedMs = new Date(t.updated_at).getTime();
+      const elapsedSecTotal = Math.max(0, Math.floor((nowMs - lastUpdatedMs) / 1000));
+      
+      const recoverSec = Math.round((Number(t.recover_minutes) || 5) * 60);
+
+      const recoveredStamina = Math.floor(elapsedSecTotal / recoverSec);
+      const currentStamina = Math.min(Number(t.max_stamina), Number(t.current_stamina) + recoveredStamina);
+      const secIntoCurrent = elapsedSecTotal % recoverSec;
+      const secUntilNext = recoverSec - secIntoCurrent;
+
+      const percent = Math.min(100, Math.floor((currentStamina / Number(t.max_stamina)) * 100));
+
+      let barColor = "var(--color-green)";
+      if (percent >= 90) {
+        barColor = "var(--color-red)";
+      } else if (percent >= 70) {
+        barColor = "var(--color-yellow)";
+      }
+
+      const maxVal = Number(t.max_stamina);
+      
+      // スプレッドシートから読み込んだ target_stamina を正確に数値化
+      const targetVal = t.target_stamina !== undefined ? Number(t.target_stamina) : maxVal;
+
+      let targetText = "";
+
+      if (currentStamina >= targetVal) {
+        targetText = `🎯 <strong>${targetVal}</strong> に到達済み`;
+      } else {
+        const remainSecTarget = (targetVal - currentStamina - 1) * recoverSec + secUntilNext;
+        const targetDate = new Date(nowMs + remainSecTarget * 1000);
+        targetText = `🎯 <strong>${targetVal}</strong> まで あと <strong>${formatDuration(remainSecTarget)}</strong> <span class="time-detail">(到達時刻: ${formatClock(targetDate)})</span>`;
+      }
+
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="card-row-1">
+          <div class="game-title-container">
+            <div class="game-title">${escapeHtml(t.name)}</div>
+          </div>
+          <div class="stamina-text">${currentStamina} / ${maxVal}</div>
+          <button class="edit-btn" onclick="openEditModal(${index})">✏️ 編集</button>
+        </div>
+
+        <div class="stamina-bar-container">
+          <div class="stamina-bar-fill" style="width: ${percent}%; background-color: ${barColor};"></div>
+        </div>
+
+        <div class="time-info-box">
+          <div class="time-target">${targetText}</div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function formatDuration(totalSec) {
+    if (totalSec <= 0) return "00:00:00";
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  function formatClock(date) {
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    if (isToday) return timeStr;
+    return `${date.getMonth()+1}/${date.getDate()} ${timeStr}`;
+  }
+
+  function openAddModal() {
+    document.getElementById("modalTitle").innerText = "タイマー追加";
+    document.getElementById("editIndex").value = "-1";
+    document.getElementById("inputName").value = "";
+    document.getElementById("inputCurrent").value = "";
+    document.getElementById("inputMax").value = "";
+    document.getElementById("inputTarget").value = "50";
+    
+    document.getElementById("inputIntervalMin").value = "5";
+    document.getElementById("inputIntervalSec").value = "0";
+
+    document.getElementById("btnDelete").style.display = "none";
+    document.getElementById("modalOverlay").classList.add("active");
+  }
+
+  function openEditModal(index) {
+    const t = timers[index];
+    const nowMs = Date.now();
+    const elapsedSec = Math.max(0, Math.floor((nowMs - new Date(t.updated_at).getTime()) / 1000));
+    const recoverSec = Math.round(Number(t.recover_minutes) * 60);
+    const current = Math.min(Number(t.max_stamina), Number(t.current_stamina) + Math.floor(elapsedSec / recoverSec));
+
+    const totalSeconds = Math.round(Number(t.recover_minutes) * 60);
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+
+    const maxVal = Number(t.max_stamina);
+    const targetVal = t.target_stamina !== undefined ? Number(t.target_stamina) : maxVal;
+
+    document.getElementById("modalTitle").innerText = "タイマー編集";
+    document.getElementById("editIndex").value = index;
+    document.getElementById("inputName").value = t.name;
+    document.getElementById("inputCurrent").value = current;
+    document.getElementById("inputMax").value = t.max_stamina;
+    document.getElementById("inputTarget").value = targetVal;
+    
+    document.getElementById("inputIntervalMin").value = m;
+    document.getElementById("inputIntervalSec").value = s;
+
+    document.getElementById("btnDelete").style.display = "block";
+    document.getElementById("modalOverlay").classList.add("active");
+  }
+
+  function closeModal() {
+    document.getElementById("modalOverlay").classList.remove("active");
+  }
+
+  function saveModalData() {
+    const name = document.getElementById("inputName").value.trim();
+    const current = Number(document.getElementById("inputCurrent").value) || 0;
+    const max = Number(document.getElementById("inputMax").value);
+    
+    // 入力値を正しくパースして取得
+    const targetInput = document.getElementById("inputTarget").value.trim();
+    const targetVal = targetInput !== "" ? Number(targetInput) : max;
+    
+    // 分と秒の入力値を取得（HTML要素が確実に存在するため、安全に実行可能）
+    const minInput = Number(document.getElementById("inputIntervalMin").value) || 0;
+    const secInput = Number(document.getElementById("inputIntervalSec").value) || 0;
+    const totalSeconds = (minInput * 60) + secInput;
+    const intervalDecimal = totalSeconds / 60;
+
+    const editIndex = Number(document.getElementById("editIndex").value);
+
+    if (!name || !max) return alert("ゲームタイトルと最大スタミナは必須です");
+    if (totalSeconds <= 0) return alert("回復ペースは1秒以上に設定してください");
+
+    if (editIndex === -1) {
+      timers.push({
+        id: "game-" + Date.now(),
+        name: name,
+        current_stamina: current,
+        max_stamina: max,
+        target_stamina: targetVal,
+        recover_minutes: intervalDecimal,
+        updated_at: new Date().toISOString()
+      });
+    } else {
+      timers[editIndex].name = name;
+      timers[editIndex].current_stamina = current;
+      timers[editIndex].max_stamina = max;
+      timers[editIndex].target_stamina = targetVal;
+      timers[editIndex].recover_minutes = intervalDecimal;
+      timers[editIndex].updated_at = new Date().toISOString();
+    }
+
+    closeModal();
+    render();
+    saveTimersToGAS();
+  }
+
+  function deleteCurrentTimer() {
+    const editIndex = Number(document.getElementById("editIndex").value);
+    if (editIndex >= 0 && confirm("このタイマーを削除しますか？")) {
+      timers.splice(editIndex, 1);
+      closeModal();
+      render();
+      saveTimersToGAS();
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+  }
+
+  checkAuth();
+
+  setInterval(render, 1000);
+</script>
+</body>
+</html>

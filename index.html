@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ソシャゲタイマー</title>
+  <title>スタミナタイマー</title>
   <style>
     :root {
       --primary: #3b82f6;
@@ -136,7 +136,7 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 12px;
+      padding: 4px 12px;
       margin-bottom: 10px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.25);
     }
@@ -209,8 +209,8 @@
       color: var(--text-sub);
     }
 
-    .time-target { color: #fbbf24; font-weight: 600; }
-    .time-detail { font-size: 0.8rem; color: var(--text-sub); font-weight: bold; }
+    .time-target { color: var(--text-sub); font-weight: 600; text-align: right; }
+    .time-detail { font-size: 0.8rem; color: #cbd5e1; font-weight: bold; }
 
     .form-row { display: flex; gap: 8px; align-items: center; }
     .form-row input { flex: 1; text-align: center; }
@@ -339,7 +339,7 @@
 
   <div id="appContainer">
     <header>
-      <h1>📱 ソシャゲタイマー</h1>
+      <h1>📱 スタミナタイマー</h1>
       <div class="header-actions">
         <span id="syncStatus">読込待機中</span>
         <button class="sync-btn" onclick="fetchTimers()">🔄 同期</button>
@@ -508,9 +508,9 @@
       const percent = Math.min(100, Math.floor((currentStamina / Number(t.max_stamina)) * 100));
 
       let barColor = "var(--color-green)";
-      if (percent >= 90) {
+      if (percent >= 99) {
         barColor = "var(--color-red)";
-      } else if (percent >= 70) {
+      } else if (percent >= 90) {
         barColor = "var(--color-yellow)";
       }
 
@@ -521,11 +521,11 @@
       let targetText = "";
 
       if (currentStamina >= targetVal) {
-        targetText = `🎯 <strong>${targetVal}</strong> に到達済み`;
+        targetText = `<strong>${targetVal}</strong> に到達済み`;
       } else {
         const remainSecTarget = (targetVal - currentStamina - 1) * recoverSec + secUntilNext;
         const targetDate = new Date(nowMs + remainSecTarget * 1000);
-        targetText = `🎯 <strong>${targetVal}</strong> まで あと <strong>${formatDuration(remainSecTarget)}</strong> <span class="time-detail">(到達時刻: ${formatClock(targetDate)})</span>`;
+        targetText = `<strong>${targetVal}</strong> まで あと <strong>${formatDuration(remainSecTarget)}</strong> （到達時刻: <span class="time-detail"><strong>${formatClock(targetDate)}</strong></span>）`;
       }
 
       const card = document.createElement("div");
